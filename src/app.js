@@ -1,11 +1,19 @@
 import express from "express";
 import prisma from "./config/database.js";
+import subjectRoutes from "./routes/subjectRoutes.js";
+import questionRoutes from "./routes/questionRoutes.js";
 
 const app = express();
 
 app.use(express.json());
 
-// Verificar API e banco
+// Rotas de matérias
+app.use("/subjects", subjectRoutes);
+
+// Rotas de questões
+app.use("/questions", questionRoutes);
+
+// Health Check
 app.get("/health", async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -16,19 +24,15 @@ app.get("/health", async (req, res) => {
       timestamp: new Date().toISOString(),
       services: {
         api: "OK",
-        database: { status: "OK" },
+        database: {
+          status: "OK",
+        },
       },
     });
   } catch (error) {
-    console.error("Erro na verificação do banco:", error);
-
-    res.status(503).json({
-      status: "DEGRADED",
-      message: "API do Gerador de Provas",
-      services: {
-        api: "OK",
-        database: { status: "ERROR" },
-      },
+    res.status(500).json({
+      status: "ERROR",
+      message: "Erro ao verificar o banco de dados",
     });
   }
 });
@@ -36,22 +40,25 @@ app.get("/health", async (req, res) => {
 // Listar usuários
 app.get("/users", async (req, res) => {
   try {
-    const usuarios = await prisma.user.findMany({
+    const users = await prisma.user.findMany({
       select: {
         id: true,
         nome: true,
         email: true,
-        papel: true,
         foto: true,
+        papel: true,
         createdAt: true,
+        updatedAt: true,
       },
-      orderBy: { id: "asc" },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     res.status(200).json({
       success: true,
-      data: usuarios,
-      total: usuarios.length,
+      data: users,
+      total: users.length,
     });
   } catch (error) {
     console.error("Erro ao buscar usuários:", error);
@@ -66,23 +73,59 @@ app.get("/users", async (req, res) => {
 // Criar usuário
 app.post("/users", async (req, res) => {
   try {
-    const { nome, email, foto, papel } = req.body;
+    const { nome, email, papel, foto } = req.body;
 
-    const usuario = await prisma.user.create({
+    if (!nome || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Nome e email são obrigatórios",
+      });
+    }
+
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "Email já cadastrado",
+      });
+    }
+
+    const user = await prisma.user.create({
       data: {
         nome,
         email,
-        foto,
         papel: papel || "PROFESSOR",
+        foto: foto || null,
+      },
+      select: {
+        id: true,
+        nome: true,
+        email: true,
+        foto: true,
+        papel: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
     res.status(201).json({
       success: true,
-      data: usuario,
+      data: user,
     });
   } catch (error) {
     console.error("Erro ao criar usuário:", error);
+
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        message: "Email já cadastrado",
+      });
+    }
 
     res.status(500).json({
       success: false,
@@ -91,146 +134,11 @@ app.post("/users", async (req, res) => {
   }
 });
 
-// Criar matéria
-app.post("/subjects", async (req, res) => {
-  try {
-    const { nome, professorId, ativa } = req.body;
-
-    const materia = await prisma.subject.create({
-      data: {
-        nome,
-        professorId,
-        ativa: ativa ?? true,
-      },
-    });
-
-    res.status(201).json({
-      success: true,
-      data: materia,
-    });
-  } catch (error) {
-    console.error("Erro ao criar matéria:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Erro ao criar matéria",
-    });
-  }
-});
-
-// Criar questão
-app.post("/questions", async (req, res) => {
-  try {
-    const {
-      enunciado,
-      dificuldade,
-      respostaCorreta,
-      subjectId,
-      authorId,
-      ativa,
-    } = req.body;
-
-    const questao = await prisma.question.create({
-      data: {
-        enunciado,
-        dificuldade,
-        respostaCorreta,
-        subjectId,
-        authorId,
-        ativa: ativa ?? true,
-      },
-    });
-
-    res.status(201).json({
-      success: true,
-      data: questao,
-    });
-  } catch (error) {
-    console.error("Erro ao criar questão:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Erro ao criar questão",
-    });
-  }
-});
-
-// Listar matérias com professor
-app.get("/subjects", async (req, res) => {
-  try {
-    const materias = await prisma.subject.findMany({
-      include: {
-        professor: {
-          select: {
-            id: true,
-            nome: true,
-            email: true,
-            foto: true,
-            papel: true,
-          },
-        },
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-
-    res.status(200).json({
-      success: true,
-      data: materias,
-      total: materias.length,
-    });
-  } catch (error) {
-    console.error("Erro ao buscar matérias:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Erro ao buscar matérias",
-    });
-  }
-});
-
-// Listar questões com matéria e autor
-app.get("/questions", async (req, res) => {
-  try {
-    const questoes = await prisma.question.findMany({
-      include: {
-        subject: true,
-        author: {
-          select: {
-            id: true,
-            nome: true,
-            email: true,
-            foto: true,
-            papel: true,
-          },
-        },
-      },
-      orderBy: {
-        id: "asc",
-      },
-    });
-
-    res.status(200).json({
-      success: true,
-      data: questoes,
-      total: questoes.length,
-    });
-  } catch (error) {
-    console.error("Erro ao buscar questões:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Erro ao buscar questões",
-    });
-  }
-});
-
-// Rota não encontrada
+// Rota para endpoints que não existem
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Rota " + req.method + " " + req.originalUrl + " não encontrada",
+    message: "Rota não encontrada",
   });
 });
 
