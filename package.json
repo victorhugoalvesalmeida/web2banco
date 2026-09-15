@@ -7,11 +7,25 @@
     "pg": "^8.23.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^5.0.0",
+    "eslint": "^10.10.0",
+    "globals": "^17.12.0",
     "nodemon": "^3.1.10",
+    "prettier": "^3.9.6",
     "prisma": "^7.10.0",
-    "tsx": "^4.23.13"
+    "supertest": "^7.2.2",
+    "tsx": "^4.23.13",
+    "vitest": "^5.0.0"
   },
   "scripts": {
-    "dev": "nodemon --watch src --watch generated/prisma --ext js,ts,json --exec tsx src/server.js"
-  }
+    "dev": "nodemon --watch src --watch generated/prisma --ext js,ts,json --exec tsx src/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "type": "module"
 }
