@@ -25,7 +25,9 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:pratica": "vitest run",
+    "test:atividade": "vitest run"
   },
   "type": "module"
 }
