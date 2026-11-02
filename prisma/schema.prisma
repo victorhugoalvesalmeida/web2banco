@@ -11,13 +11,13 @@ datasource db {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   nome      String
-  email     String     @unique
+  email     String   @unique
   foto      String?
-  papel     Papel      @default(PROFESSOR)
-  createdAt DateTime   @default(now()) @map("data_criacao")
-  updatedAt DateTime   @updatedAt @map("data_atualizacao")
+  papel     Papel    @default(PROFESSOR)
+  createdAt DateTime @default(now()) @map("data_criacao")
+  updatedAt DateTime @updatedAt @map("data_atualizacao")
   questions Question[]
   subjects  Subject[]
 
@@ -25,14 +25,14 @@ model User {
 }
 
 model Subject {
-  id          Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   nome        String
-  ativa       Boolean    @default(true)
-  professorId Int        @map("professor_id")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  ativa       Boolean  @default(true)
+  professorId Int      @map("professor_id")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   questions   Question[]
-  professor   User       @relation(fields: [professorId], references: [id])
+  professor   User     @relation(fields: [professorId], references: [id])
 
   @@map("subjects")
 }

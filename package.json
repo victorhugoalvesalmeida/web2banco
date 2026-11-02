@@ -1,31 +1,30 @@
 {
+  "name": "web2banco",
+  "version": "2.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "test:pratica": "vitest run --exclude tests/upload-v2.test.js && vitest run tests/upload-v2.test.js -t Prática",
+    "test:atividade": "vitest run --exclude tests/upload-v2.test.js && vitest run tests/upload-v2.test.js -t Atividade",
+    "fixtures:upload": "node tests/fixtures/createUploadFixtures.js",
+    "serve:avaliacao": "tsx tests/serve-evaluation.js",
+    "test": "vitest run"
+  },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^7.10.0",
-    "dotenv": "^17.4.2",
-    "express": "^5.1.0",
-    "pg": "^8.23.0"
+    "@uploadcare/upload-client": "^6.13.2",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@vitest/coverage-v8": "^5.0.0",
-    "eslint": "^10.10.0",
-    "globals": "^17.12.0",
-    "nodemon": "^3.1.10",
-    "prettier": "^3.9.6",
-    "prisma": "^7.10.0",
-    "supertest": "^7.2.2",
-    "tsx": "^4.23.13",
-    "vitest": "^5.0.0"
-  },
-  "scripts": {
-    "dev": "nodemon --watch src --watch generated/prisma --ext js,ts,json --exec tsx src/server.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "lint": "eslint .",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "type": "module"
+    "@prisma/client": "^5.18.0",
+    "prisma": "^5.18.0",
+    "supertest": "^7.0.0",
+    "tsx": "^4.16.5",
+    "vitest": "^2.0.5"
+  }
 }
